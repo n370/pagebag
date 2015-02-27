@@ -1,0 +1,6 @@
+/data
+/*.log
+/*bookmarks.json
+/node_modules
+/*.vim
+/*.swp
