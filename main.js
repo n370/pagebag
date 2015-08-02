@@ -10,7 +10,7 @@
  *
  * @function PageBag
  * @summary Access web pages and capture full rendered static images of them.
- *          Store binary data with other properties of each page.
+ *          TODO Store binary data with other properties of each page.
  *
  * @param {Object|Object[]} source - A source object or an array of source objects.
  * @param {string} source.browser|source[].browser - A browser name.
