@@ -1,65 +1,101 @@
 (function(module, require) {
   'use strict';
   var Pageres = require('pageres');
-  var driver = new Pageres({delay: 5});
+  var async = require('async');
 
   module.exports = PageBag;
 
-  function PageBag(collection) {
-    var destination = __dirname + '/pagebag/' + collection.source;
-    var collector = setupCollectorWith(driver);
+/**
+ * PageBag v0.1.0
+ *
+ * @function PageBag
+ * @summary Access web pages and capture full rendered static images of them.
+ *          Store binary data with other properties of each page.
+ *
+ * @param {Object|Object[]} source - A source object or an array of source objects.
+ * @param {string} source.browser|source[].browser - A browser name.
+ * @param {Object} source.bookmarks|source[].bookmarks - A JSON object containing this browser bookmark data.
+ */
+
+  function PageBag(source) {
+    var basePath = __dirname + '/pagebag/';
+    var bag = [];
     var sources = {
       chrome: {
-        collectPages: function collectPages(collection) {
-          var item;
-
-          for(item in collection) {
-            if(collection.hasOwnProperty('children')) {
-              lookInsideChildren(collection.children);
-            } else {
-              this.collectPages(collection[item]);
-            }
-          }
-
-          function lookInsideChildren(children) {
-            children.forEach(function (child) {
-              if(child.hasOwnProperty('children')) {
-                lookInsideChildren(child.children);
-              } else if(child.hasOwnProperty('url')) {
-                console.log('Collecting:', child.url);
-                // collector.getPage('child.url');
-              }
-            });
-          }
-        }
+        collectPages: collectPages,
+        collectPageImages: collectPageImages
       }
     };
 
-    if (collection.hasOwnProperty('sources') &&
-      collection.sources instanceof Array) {
-        collection.sources.forEach(function(source) {
-          if (typeof source === 'string') {
-            sources[source].collectPages(collection.data.roots);
+    initialize(source);
+
+    function initialize(source) {
+      if (source instanceof Array) {
+        source.forEach(function(source) {
+          if(source.browser === 'chrome') {
+            sources.chrome.collectPages(source.bookmarks.roots);
           }
         });
+      } else if (source.hasOwnProperty('browser')) {
+        if(source.browser === 'chrome') {
+          sources.chrome.collectPages(source.bookmarks.roots);
+        }
+      }
+
+      // Collect images and save to bag.
+      sources[source.browser].collectPageImages(bag, basePath + source.browser);
     }
 
-    if (collection.hasOwnProperty('source')) {
-      sources[collection.source].collectPages(collection.data.roots);
+
+    function collectPages(bookmarks) {
+      var item;
+
+      for(item in bookmarks) {
+        if(bookmarks.hasOwnProperty('children')) {
+          lookInsideChildren(bookmarks.children);
+        } else {
+          this.collectPages(bookmarks[item]);
+        }
+      }
+
+      // Inside collectPages. Recurse into array objects looking for urls.
+      function lookInsideChildren(children) {
+        children.forEach(function forEachChild(child) {
+          if (child.hasOwnProperty('children')) {
+            lookInsideChildren(child.children);
+          } else if (child.hasOwnProperty('url')) {
+            bag.push({title: child.name, url: child.url});
+            console.log(child.url, 'successfully collected.');
+          }
+        });
+      }
     }
 
-    driver
-      .run(function (err) {
-        if (err) { return; }
-        console.log('All pages were successfully collected.');
+    function collectPageImages(bag, destination) {
+      var asyncTasks = [];
+
+      bag.forEach(function(page){
+        asyncTasks.push(function(asyncTaskCallback){
+          setupCollector(destination)
+            .getPage(page.url)
+            .run(function(err) {
+              if (err) {return;}
+              console.log(page.url, 'image successfully collected.');
+              asyncTaskCallback();
+            });
+        });
       });
 
-    function setupCollectorWith(driver) {
+      async.parallel(asyncTasks, function(){
+        console.log('All images were successfully collected.');
+      });
+    }
+
+    function setupCollector(destination) {
+      var options = { delay: 5, crop: false };
       return {
         getPage: function getPage(url) {
-          driver
-            .src(url,['1920x1200'])
-            .dest(destination);
+          return new Pageres(options).src(url,['1920x1200']).dest(destination);
         }
       };
     }
