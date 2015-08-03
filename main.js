@@ -1,12 +1,12 @@
 (function(module, require) {
   'use strict';
   var Pageres = require('pageres');
-  var async = require('async');
+  var eachAsync = require('each-async');
 
   module.exports = PageBag;
 
 /**
- * PageBag v0.1.0
+ * PageBag v0.0.1
  *
  * @function PageBag
  * @summary Access web pages and capture full rendered static images of them.
@@ -72,30 +72,28 @@
     }
 
     function collectPageImages(bag, destination) {
-      var asyncTasks = [];
-
-      bag.forEach(function(page){
-        asyncTasks.push(function(asyncTaskCallback){
-          setupCollector(destination)
-            .getPage(page.url)
-            .run(function(err) {
-              if (err) {return;}
-              console.log(page.url, 'image successfully collected.');
-              asyncTaskCallback();
-            });
-        });
-      });
-
-      async.parallel(asyncTasks, function(){
+      eachAsync(bag, function(item, index, done) {
+        setupCollector(destination)
+          .getPage(item.url)
+          .run(function(err) {
+            if (err) done(err);
+            done();
+            console.log(page.url, 'image successfully collected.');
+          });
+      }, function(err) {
+        if (err) return;
         console.log('All images were successfully collected.');
       });
     }
 
     function setupCollector(destination) {
       var options = { delay: 5, crop: false };
+
       return {
         getPage: function getPage(url) {
-          return new Pageres(options).src(url,['1920x1200']).dest(destination);
+          return new Pageres(options)
+            .src(url,['1920x1200'])
+            .dest(destination);
         }
       };
     }

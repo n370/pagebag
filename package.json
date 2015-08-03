@@ -2,14 +2,15 @@
   "name": "pagebag",
   "version": "0.0.1",
   "description": "Your visual bookmarks archive.",
-  "main": "main.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "Dylson Valente Neto",
   "license": "MIT",
+  "author": "Dylson Valente Neto <dylson@tevincocin.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tevincocin/pagebag"
+  },
+  "main": "main.js",
   "dependencies": {
-    "async": "^1.4.0",
+    "each-async": "^1.1.1",
     "pageres": "^2.1.0"
   }
 }
