@@ -1,5 +1,8 @@
 (function(module, require) {
   'use strict';
+  // https://github.com/sindresorhus/pageres/issues/178#issuecomment-127375281
+  require('events').EventEmitter.defaultMaxListeners = Infinity;
+
   var Pageres = require('pageres');
   var async = require('async');
 
