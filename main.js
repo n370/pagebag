@@ -86,7 +86,7 @@
         });
       });
 
-      async.parallel(asyncTasks, function(){
+      async.series(asyncTasks, function(){
         console.log('All images were successfully collected.');
       });
     }
