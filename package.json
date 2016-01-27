@@ -9,7 +9,6 @@
   "author": "Dylson Valente Neto",
   "license": "MIT",
   "dependencies": {
-    "async": "^1.4.0",
-    "pageres": "^2.1.0"
+    "pageres": "^4.0"
   }
 }

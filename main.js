@@ -4,7 +4,6 @@
   require('events').EventEmitter.defaultMaxListeners = Infinity;
 
   var Pageres = require('pageres');
-  var async = require('async');
 
   module.exports = PageBag;
 
@@ -75,32 +74,11 @@
     }
 
     function collectPageImages(bag, destination) {
-      var asyncTasks = [];
-
-      bag.forEach(function(page){
-        asyncTasks.push(function(asyncTaskCallback){
-          setupCollector(destination)
-            .getPage(page.url)
-            .run(function(err) {
-              if (err) {return;}
-              console.log(page.url, 'image successfully collected.');
-              asyncTaskCallback();
-            });
-        });
+      bag.map(function(page){
+        return new Pageres({ delay: 5, crop: false }).src(page.url,['1920x1200']).dest(destination).run();
       });
 
-      async.series(asyncTasks, function(){
-        console.log('All images were successfully collected.');
-      });
-    }
-
-    function setupCollector(destination) {
-      var options = { delay: 5, crop: false };
-      return {
-        getPage: function getPage(url) {
-          return new Pageres(options).src(url,['1920x1200']).dest(destination);
-        }
-      };
+      Promise.all(bag).then(() => console.log('All images were successfully collected.'));
     }
   }
 }(module, require));

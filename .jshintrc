@@ -1,3 +1,4 @@
 {
-  "validthis": true
+  "validthis": true,
+  "esnext": true
 }
